@@ -1,7 +1,3 @@
-// GraphQL type definitions (schema)
-// - Query: read operations (no side-effects)
-// - Mutation: write operations (create/update/delete)
-
 export const typeDefs = /* GraphQL */ `
   """A user in Odysseus"""
   type User {
@@ -15,18 +11,25 @@ export const typeDefs = /* GraphQL */ `
   type Account {
     id: ID!
     userId: ID!
-    type: String!       # checking | savings | credit (tighten this later)
+    type: String!       # checking | savings | credit (we’ll tighten this later)
     balanceCents: Int!
     createdAt: String!
   }
 
+  """Input required to create a user"""
+  input CreateUserInput {
+    email: String!
+    name: String!
+  }
+
   type Query {
-    health: String!                     # quick sanity check
-    users: [User!]!                     # list all users (demo / in-memory)
+    health: String!
+    users: [User!]!
     accountsByUser(userId: ID!): [Account!]!
   }
 
   type Mutation {
-    noop: Boolean!                      # placeholder;
+    noop: Boolean!
+    createUser(input: CreateUserInput!): User!
   }
 `;

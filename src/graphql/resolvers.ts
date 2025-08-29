@@ -1,41 +1,49 @@
-// Resolvers = functions that actually return the data for each field in the schema.
-// For now we’ll return in-memory demo data (no database yet).
+import { z } from 'zod';
+import { usersCol, toUserGql, type UserDoc } from '../db';
+import { accounts } from './data'; // still in-memory for now
 
-type User = {
-  id: string;
-  email: string;
-  name: string;
-  createdAt: string;  // ISO string for GraphQL
-};
-
-type Account = {
-  id: string;
-  userId: string;
-  type: "checking" | "savings" | "credit";
-  balanceCents: number;
-  createdAt: string;
-};
-
-// demo data (later we will use MongoDB)
-const users: User[] = [
-  { id: "u1", email: "aryan@example.com", name: "Aryan Kumar", createdAt: new Date().toISOString() },
-  { id: "u2", email: "alice@example.com", name: "Alice", createdAt: new Date().toISOString() }
-];
-
-const accounts: Account[] = [
-  { id: "a1", userId: "u1", type: "checking", balanceCents: 25000, createdAt: new Date().toISOString() },
-  { id: "a2", userId: "u1", type: "savings",  balanceCents: 500000, createdAt: new Date().toISOString() },
-  { id: "a3", userId: "u2", type: "checking", balanceCents: 10000, createdAt: new Date().toISOString() }
-];
+const CreateUserSchema = z.object({
+  email: z.string().email().toLowerCase(),
+  name: z.string().min(2, "Name must be at least 2 characters long")
+});
 
 export const resolvers = {
   Query: {
     health: () => "ok",
-    users: () => users,
-    accountsByUser: (_parent: unknown, args: { userId: string }) =>
+
+    users: async () => {
+      const col = await usersCol();
+      const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
+      return docs.map(toUserGql);
+    },
+
+    accountsByUser: (_p: unknown, args: { userId: string }) =>
       accounts.filter(a => a.userId === args.userId),
   },
+
   Mutation: {
-    noop: () => true
+    noop: () => true,
+
+    createUser: async (_p: unknown, args: { input: { email: string; name: string } }) => {
+      const parsed = CreateUserSchema.safeParse(args.input);
+      if (!parsed.success) {
+        const msg = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ');
+        throw new Error(`Invalid input: ${msg}`);
+      }
+      const { email, name } = parsed.data;
+
+      const col = await usersCol();
+
+      try {
+        const doc: Omit<UserDoc, '_id'> = { email, name, createdAt: new Date() };
+        const result = await col.insertOne(doc as any);
+        const created = await col.findOne({ _id: result.insertedId });
+        if (!created) throw new Error('Failed to load newly created user');
+        return toUserGql(created);
+      } catch (err: any) {
+        if (err?.code === 11000) throw new Error('Email already in use');
+        throw err;
+      }
+    }
   }
 };
