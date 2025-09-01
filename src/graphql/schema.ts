@@ -1,4 +1,11 @@
 export const typeDefs = /* GraphQL */ `
+  """Allowed account types"""
+  enum AccountType {
+    checking
+    savings
+    credit
+  }
+
   """A user in Odysseus"""
   type User {
     id: ID!
@@ -11,15 +18,20 @@ export const typeDefs = /* GraphQL */ `
   type Account {
     id: ID!
     userId: ID!
-    type: String!       # checking | savings | credit (we’ll tighten this later)
+    type: AccountType!
     balanceCents: Int!
     createdAt: String!
   }
 
-  """Input required to create a user"""
   input CreateUserInput {
     email: String!
     name: String!
+  }
+
+  input CreateAccountInput {
+    userId: ID!
+    type: AccountType!
+    openingCents: Int = 0
   }
 
   type Query {
@@ -31,5 +43,6 @@ export const typeDefs = /* GraphQL */ `
   type Mutation {
     noop: Boolean!
     createUser(input: CreateUserInput!): User!
+    createAccount(input: CreateAccountInput!): Account!
   }
 `;
