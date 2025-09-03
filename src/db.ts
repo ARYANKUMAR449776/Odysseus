@@ -1,5 +1,6 @@
-import { MongoClient, type Db, type Collection } from 'mongodb';
+import { MongoClient, ObjectId, type Db, type Collection } from 'mongodb';
 
+// stricter env helper
 function requiredEnv(name: string): string {
   const v = process.env[name];
   if (!v || v.trim() === '') {
@@ -10,9 +11,6 @@ function requiredEnv(name: string): string {
 
 const uri = requiredEnv('MONGODB_URI');
 const dbName = requiredEnv('DB_NAME');
-
-if (!uri) throw new Error('Missing MONGODB_URI in .env');
-if (!dbName) throw new Error('Missing DB_NAME in .env');
 
 let _client: MongoClient | null = null;
 let _db: Db | null = null;
@@ -27,16 +25,18 @@ export async function getDb(): Promise<Db> {
   return _db;
 }
 
-export type UserDoc = {
-  _id: any;           // ObjectId
+/* ----------------------- Users ----------------------- */
+
+export interface UserDoc {
+  _id: ObjectId;          // was 'any' before; make it exact
   email: string;
   name: string;
   createdAt: Date;
-};
+}
 
-export async function usersCol() {
+export async function usersCol(): Promise<Collection<UserDoc>> {
   const db = await getDb();
-  return db.collection('users') as Collection<UserDoc>;
+  return db.collection<UserDoc>('users');
 }
 
 export function toUserGql(u: UserDoc) {
@@ -46,4 +46,41 @@ export function toUserGql(u: UserDoc) {
     name: u.name,
     createdAt: u.createdAt.toISOString()
   };
+}
+
+/* ----------------------- Accounts ----------------------- */
+
+export type AccountType = "checking" | "savings" | "credit";
+
+export interface AccountDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  type: AccountType;
+  balanceCents: number;
+  createdAt: Date;
+}
+
+export async function accountsCol(): Promise<Collection<AccountDoc>> {
+  const db = await getDb();
+  return db.collection<AccountDoc>('accounts');
+}
+
+export function toAccountGql(a: AccountDoc) {
+  return {
+    id: a._id.toString(),
+    userId: a.userId.toString(),
+    type: a.type,
+    balanceCents: a.balanceCents,
+    createdAt: a.createdAt.toISOString(),
+  };
+}
+
+/* ----------------------- Helpers ----------------------- */
+
+export function oid(id: string): ObjectId {
+  try {
+    return new ObjectId(id);
+  } catch {
+    throw new Error('Invalid ID format');
+  }
 }
