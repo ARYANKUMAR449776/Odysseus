@@ -1,4 +1,4 @@
-// Shared in-memory data (temporary; MongoDB next milestone)
+
 export type User = {
   id: string;
   email: string;
