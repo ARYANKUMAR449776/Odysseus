@@ -1,7 +1,7 @@
-import { useQuery, useMutation } from "@apollo/client";
-import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery } from "@apollo/client";
+import { useMemo, useState } from "react";
 import { ACCOUNTS_BY_USER, CREATE_ACCOUNT, LOGIN, MAKE_TX, ME, REGISTER } from "./lib/gql";
-
+import './App.css'
 type Me = { id: string; email: string; name: string } | null;
 
 export default function App() {
@@ -12,7 +12,6 @@ export default function App() {
   const { data: meData, refetch: refetchMe } = useQuery<{ me: Me }>(ME, {
     fetchPolicy: "cache-and-network",
   });
-
   const me = meData?.me ?? null;
 
   const [register] = useMutation(REGISTER);
@@ -36,16 +35,10 @@ export default function App() {
   const userId = me?.id;
   const { data: accountsData, refetch: refetchAccounts } = useQuery(
     ACCOUNTS_BY_USER,
-    {
-      skip: !userId,
-      variables: { userId },
-    }
+    { skip: !userId, variables: { userId } }
   );
 
-  const accounts = useMemo(
-    () => accountsData?.accountsByUser ?? [],
-    [accountsData]
-  );
+  const accounts = useMemo(() => accountsData?.accountsByUser ?? [], [accountsData]);
 
   const handleRegister = async () => {
     const res = await register({ variables: { input: { email, name, password } } });
@@ -63,11 +56,7 @@ export default function App() {
     if (res.data?.createAccount) await refetchAccounts();
   };
 
-  const handleMakeTx = async (
-    accountId: string,
-    type: "credit" | "debit",
-    amountCents: number
-  ) => {
+  const handleMakeTx = async (accountId: string, type: "credit" | "debit", amountCents: number) => {
     await makeTx({
       variables: {
         input: {
@@ -83,43 +72,68 @@ export default function App() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold">Odysseus — Minimal Client</h1>
-
-      {/* Auth */}
-      <section className="space-y-2 border p-4 rounded">
-        <h2 className="font-semibold">Auth</h2>
-        <input className="border p-2 rounded" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input className="border p-2 rounded" value={name} onChange={(e) => setName(e.target.value)} />
-        <input className="border p-2 rounded" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <div className="flex gap-2">
-          <button className="border px-3 py-2 rounded" onClick={handleRegister}>Register</button>
-          <button className="border px-3 py-2 rounded" onClick={handleLogin}>Login</button>
-          <button className="border px-3 py-2 rounded" onClick={logout}>Logout</button>
-        </div>
-        <div><b>Me:</b> {me ? `${me.name} (${me.email})` : "not logged in"}</div>
-      </section>
-
-      {/* Accounts */}
-      {me && (
-        <section className="space-y-2 border p-4 rounded">
-          <h2 className="font-semibold">Accounts</h2>
-          <div className="flex gap-2">
-            <button className="border px-3 py-2 rounded" onClick={() => handleCreateAccount("checking")}>New Checking</button>
-            <button className="border px-3 py-2 rounded" onClick={() => handleCreateAccount("savings")}>New Savings</button>
-            <button className="border px-3 py-2 rounded" onClick={() => handleCreateAccount("credit")}>New Credit</button>
+    <div className="min-h-full">
+      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="mx-auto max-w-4xl px-6 py-3 flex items-center justify-between">
+          <h1 className="text-xl font-bold">Odysseus</h1>
+          <div className="text-sm text-slate-600">
+            {me ? `Signed in as ${me.name}` : "Not signed in"}
           </div>
-          <ul className="space-y-2">
-            {accounts.map((a: any) => (
-              <li key={a.id} className="border p-3 rounded">
-                <div><b>{a.type}</b> • Balance: {(a.balanceCents/100).toFixed(2)} CAD</div>
-                <button className="border px-2 py-1 rounded" onClick={() => handleMakeTx(a.id, "credit", 10000)}>+ $100</button>
-                <button className="border px-2 py-1 rounded" onClick={() => handleMakeTx(a.id, "debit", 2500)}>− $25</button>
-              </li>
-            ))}
-          </ul>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-4xl px-6 py-6 space-y-6">
+        {/* Auth Card */}
+        <section className="card p-5 space-y-4">
+          <h2 className="section-title">Authentication</h2>
+          <div className="grid gap-3 md:grid-cols-3">
+            <input className="input" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input className="input" placeholder="Name (for register)" value={name} onChange={(e) => setName(e.target.value)} />
+            <input className="input" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn btn-primary" onClick={handleRegister}>Register</button>
+            <button className="btn" onClick={handleLogin}>Login</button>
+            <button className="btn" onClick={logout}>Logout</button>
+          </div>
+          <p className="text-sm text-slate-600">
+            <b>Me:</b> {me ? `${me.name} (${me.email})` : "not logged in"}
+          </p>
         </section>
-      )}
+
+        {/* Accounts Card */}
+        {me && (
+          <section className="card p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="section-title">Accounts</h2>
+              <div className="flex gap-2">
+                <button className="btn" onClick={() => handleCreateAccount("checking")}>New Checking</button>
+                <button className="btn" onClick={() => handleCreateAccount("savings")}>New Savings</button>
+                <button className="btn" onClick={() => handleCreateAccount("credit")}>New Credit</button>
+              </div>
+            </div>
+
+            <ul className="grid gap-3 md:grid-cols-2">
+              {accounts.map((a: any) => (
+                <li key={a.id} className="card p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold capitalize">{a.type}</div>
+                      <div className="text-sm text-slate-600">
+                        Balance: <b>${(a.balanceCents / 100).toFixed(2)}</b>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button className="btn" onClick={() => handleMakeTx(a.id, "credit", 10000)}>+ $100</button>
+                    <button className="btn" onClick={() => handleMakeTx(a.id, "debit", 2500)}>− $25</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </main>
     </div>
   );
 }

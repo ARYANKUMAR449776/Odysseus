@@ -1,68 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --------- Base palette (monochrome) --------- */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --bg: 250 250 250;         /* neutral-50 */
+  --card: 255 255 255;       /* white */
+  --ink: 17 24 39;           /* neutral-900 */
+  --ink-dim: 75 85 99;       /* neutral-600 */
+  --line: 229 231 235;       /* neutral-200 */
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
+/* App scaffold */
+html, body, #root { height: 100%; }
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  @apply antialiased;
+  background: rgb(var(--bg));
+  color: rgb(var(--ink));
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* --------- Primitives --------- */
+.container-app {
+  @apply mx-auto max-w-4xl px-6;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.card {
+  @apply rounded-2xl border border-[rgb(var(--line))] bg-[rgb(var(--card))] shadow-sm;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.section-title {
+  @apply text-[17px] font-semibold tracking-tight;
+}
+
+.divider {
+  @apply border-t border-[rgb(var(--line))];
+}
+
+/* Buttons */
+.btn {
+  @apply inline-flex items-center justify-center rounded-lg
+         border border-[rgb(var(--line))] bg-white px-3.5 py-2.5
+         text-sm font-medium leading-none tracking-tight
+         shadow-sm hover:bg-neutral-50 active:scale-[.99] transition;
+}
+
+.btn-ghost {
+  @apply border-transparent bg-transparent hover:bg-neutral-100;
+}
+
+.btn-primary {
+  @apply border-neutral-900 bg-neutral-900 text-white hover:bg-black;
+}
+
+/* Inputs */
+.input {
+  @apply block w-full rounded-lg border border-[rgb(var(--line))]
+         bg-white px-3 py-2 text-[15px] leading-tight
+         placeholder:text-neutral-400
+         focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-neutral-400;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full border border-[rgb(var(--line))]
+         px-2.5 py-1 text-xs font-medium text-neutral-600;
 }
