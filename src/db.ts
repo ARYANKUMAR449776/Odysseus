@@ -101,9 +101,6 @@ export function toCardGql(c: CardDoc) {
   };
 }
 
-/** Generate a fake 16-digit token and derive last4.
- * In production you would use a tokenization service/HSM.
- */
 export function genCardToken(): { token: string; last4: string } {
   const digits = Array.from({ length: 16 }, () => Math.floor(Math.random() * 10)).join('');
   return { token: digits, last4: digits.slice(-4) };

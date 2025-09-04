@@ -1,4 +1,4 @@
-// src/auth.ts
+
 import {
   sign,
   verify,
@@ -8,7 +8,7 @@ import {
 } from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-/** Read required env var (nice error if missing) */
+/** Read required env var */
 function requiredEnv(name: string): string {
   const v = process.env[name];
   if (!v || v.trim() === "") throw new Error(`Missing ${name} in .env`);

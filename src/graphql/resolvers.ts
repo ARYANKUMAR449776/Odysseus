@@ -1,4 +1,4 @@
-// src/graphql/resolvers.ts  (or src/resolvers.ts)
+
 import { z } from 'zod';
 import type { Filter, FindOneAndUpdateOptions } from 'mongodb';
 import {
@@ -208,9 +208,6 @@ export const resolvers = {
       if (!created) throw new Error('Failed to load newly created account');
       return toAccountGql(created);
     },
-
-    /* ---------- Cards (same as Milestone 6; omitted here for brevity) ---------- */
-    // issueCard / lockCard / unlockCard / cancelCard ... (keep your working versions)
 
     /* ---------- Transactions (now authorized) ---------- */
     makeTransaction: async (_: unknown, args: { input: { accountId: string; type: "credit" | "debit"; amountCents: number; description?: string; requestId?: string } }, ctx: Ctx) => {
